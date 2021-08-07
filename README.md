@@ -1,3 +1,18 @@
+# Substrate Runtime Developer Academy
+
+## Exercise Three
+
+1. Fork & clone this project
+2. Finish the implementation
+    - [./pallets/kitties/src/lib.rs#L53](./pallets/kitties/src/lib.rs#L60)
+3. Design breed feature for pallet-kitties
+4. Requirements:
+    - A kitty have gender derived from on DNA
+    - Kitty owner can choose two kitties with opposite gender to breed a new kitten
+    - New kitten should inherits the DNA from parents
+
+---
+
 # Substrate Node Template
 
 [![Try on playground](https://img.shields.io/badge/Playground-Node_Template-brightgreen?logo=Parity%20Substrate)](https://playground.substrate.dev/?deploy=node-template)
