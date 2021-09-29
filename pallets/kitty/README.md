@@ -14,18 +14,12 @@ License: Unlicense
     * dna: u128
     * currency_id: CurrencyId
     * price: Balance
-    * owner: AccountId
     * gender: Gender
 # Storages
-* Kitties: map KittyId=>Kitty
+* Kitties: double_map KittyId,AccountId => Option<Kitty>
 * NextKittyId: KittyId
 # Events
 * KittyCreated
-    * kitty_id: KittyId
-    * kitty: Kitty
-* KittyBreeded
-    * parent1: AccountId
-    * parent2: AccountId
     * kitty_id: KittyId
     * kitty: Kitty
 * KittyTransfered
