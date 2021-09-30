@@ -1,7 +1,7 @@
 [package]
 name = "pallet-kitties"
 version = "0.1.0"
-authors = ["Bryan Chen"]
+authors = ['MaximeLassalleHub <https://github.com/MaximeLassalleHub>']
 edition = "2018"
 
 [dependencies]

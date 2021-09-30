@@ -1,13 +1,10 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{
-	pallet_prelude::*,
-	traits::Randomness,
-};
+use frame_support::{pallet_prelude::*, traits::Randomness};
 use frame_system::pallet_prelude::*;
-use sp_runtime::ArithmeticError;
-use sp_io::hashing::blake2_128;
 pub use pallet::*;
+use sp_io::hashing::blake2_128;
+use sp_runtime::ArithmeticError;
 
 #[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
 pub struct Kitty(pub [u8; 16]);
@@ -21,14 +18,21 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 	}
 
+	#[pallet::error]
+	pub enum Error<T> {
+	}
+
 	/// Stores all the kitties. Key is (user, kitty_id).
 	#[pallet::storage]
 	#[pallet::getter(fn kitties)]
 	pub type Kitties<T: Config> = StorageDoubleMap<
 		_,
-		Blake2_128Concat, T::AccountId,
-		Blake2_128Concat, u32,
-		Kitty, OptionQuery
+		Blake2_128Concat,
+		T::AccountId,
+		Blake2_128Concat,
+		u32,
+		Kitty,
+		OptionQuery,
 	>;
 
 	/// Stores the next kitty Id.
@@ -41,7 +45,7 @@ pub mod pallet {
 	#[pallet::metadata(T::AccountId = "AccountId")]
 	pub enum Event<T: Config> {
 		/// A kitty is created. \[owner, kitty_id, kitty\]
-		KittyCreated(T::AccountId, u32, Kitty)
+		KittyCreated(T::AccountId, u32, Kitty),
 	}
 
 	#[pallet::pallet]
@@ -49,34 +53,35 @@ pub mod pallet {
 	pub struct Pallet<T>(_);
 
 	#[pallet::call]
- 	impl<T:Config> Pallet<T> {
-
+	impl<T: Config> Pallet<T> {
 		/// Create a new kitty
 		#[pallet::weight(1000)]
 		pub fn create(origin: OriginFor<T>) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
+			NextKittyId::<T>::try_mutate(|next_id| -> DispatchResult {
+				let kitty_id = *next_id;
+				*next_id = next_id.checked_add(1).ok_or(ArithmeticError::Overflow)?;
+				// Generate a random 128bit value
+				let payload = (
+					<pallet_randomness_collective_flip::Pallet<T> as Randomness<
+						T::Hash,
+						T::BlockNumber,
+					>>::random_seed()
+					.0,
+					&sender,
+					<frame_system::Pallet<T>>::extrinsic_index(),
+				);
+				let dna = payload.using_encoded(blake2_128);
 
-			// TODO: ensure kitty id does not overflow
-			// return Err(ArithmeticError::Overflow.into());
+				// Create and store kitty
+				let kitty = Kitty(dna);
+				Kitties::<T>::insert(&sender, kitty_id, kitty.clone());
 
-			// Generate a random 128bit value
-			let payload = (
-				<pallet_randomness_collective_flip::Pallet<T> as Randomness<T::Hash, T::BlockNumber>>::random_seed().0,
-				&sender,
-				<frame_system::Pallet<T>>::extrinsic_index(),
-			);
-			let dna = payload.using_encoded(blake2_128);
+				// Emit event
+				Self::deposit_event(Event::KittyCreated(sender, kitty_id, kitty));
 
-			// Create and store kitty
-			let kitty = Kitty(dna);
-			let kitty_id = Self::next_kitty_id();
-			Kitties::<T>::insert(&sender, kitty_id, kitty.clone());
-			NextKittyId::<T>::put(kitty_id + 1);
-
-			// Emit event
-			Self::deposit_event(Event::KittyCreated(sender, kitty_id, kitty));
-
-			Ok(())
+				Ok(())
+			})
 		}
 	}
 }
