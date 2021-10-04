@@ -24,11 +24,11 @@ License: Unlicense
     * kitty: Kitty
     * owner: AccountId
 * KittyBred
-    * kitty_parent_1_: u32
-    * kitty_parent_2_: u32
+    * owner: AccountId
     * kitty_id: u32
     * kitty: Kitty
-    * owner: AccountId
+    * kitty_parent_1_: u32
+    * kitty_parent_2_: u32
 * KittyTransfered
     * from: AccountId
     * to: AccountId
