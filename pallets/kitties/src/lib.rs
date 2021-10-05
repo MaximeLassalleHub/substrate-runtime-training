@@ -6,6 +6,8 @@ use sp_io::hashing::blake2_128;
 use sp_runtime::ArithmeticError;
 
 pub use pallet::*;
+#[cfg(test)]
+mod tests;
 #[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
 pub enum KittyGender {
 	Male,
