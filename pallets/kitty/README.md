@@ -3,7 +3,7 @@ License: Unlicense
 # Calls
 * fn create
 * fn breed(kitty_id_1: u32,kitty_id_2: u32)
-* fn transfer
+* fn transfer(to:AccountId,kitty_id:u32)
 * sell
 # Types
 * enum Gender {
@@ -15,6 +15,9 @@ License: Unlicense
     * currency_id: CurrencyId
     * price: Balance
     * gender: Gender
+# Errors
+InvalidKittyId,
+SameGender,
 # Storages
 * Kitties: double_map u32,AccountId => Option<Kitty>
 * Nextu32: u32
