@@ -97,7 +97,7 @@ fn can_breed(){
         assert_ok!(KittiesModule::breed(Origin::signed(100),0,1));
 
         // create u8 , 16 Kitty manually upon on random_value specs
-        let kitty = Kitty([59,250,138,82,209,39,141,109,163,238,183,145,235,168,18,122]);
+        let kitty = Kitty([59, 254, 219, 122, 245, 239, 191, 125, 255, 239, 247, 247, 251, 239, 247, 254]);
         assert_eq!(KittiesModule::kitties(100,2), Some(kitty.clone()));
         assert_eq!(KittiesModule::next_kitty_id(),3);
         System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyBred(100u64,2u32  ,kitty,0u32,1u32)));

@@ -79,16 +79,7 @@ pub mod pallet {
 			let sender = ensure_signed(origin)?;
 			let kitty_id = Self::get_next_kitty_id()?;
 			// Generate a random 128bit value
-			let payload = (
-				<pallet_randomness_collective_flip::Pallet<T> as Randomness<
-					T::Hash,
-					T::BlockNumber,
-				>>::random_seed()
-				.0,
-				&sender,
-				<frame_system::Pallet<T>>::extrinsic_index(),
-			);
-			let dna = payload.using_encoded(blake2_128);
+			let dna: [u8; 16] = Self::random_value(&sender);
 
 			// Create and store kitty
 			let kitty = Kitty(dna);
@@ -132,8 +123,16 @@ impl<T: Config> Pallet<T> {
 		})
 	}
 	fn random_value(sender: &T::AccountId) -> [u8; 16] { 
-		// TODO FINISH IT
-		Default::default()		
+		let payload = (
+			<pallet_randomness_collective_flip::Pallet<T> as Randomness<
+				T::Hash,
+				T::BlockNumber,
+			>>::random_seed()
+			.0,
+			&sender,
+			<frame_system::Pallet<T>>::extrinsic_index(),
+		);
+		payload.using_encoded(blake2_128)
 	}
 	fn combine_dna(dna1_byte:u8,dna2_byte:u8, selector: u8) -> u8{
 		(!selector & dna1_byte) | (selector & dna2_byte)
