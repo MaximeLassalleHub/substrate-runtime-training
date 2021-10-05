@@ -22,3 +22,6 @@ purge:
 restart: purge run
 
 init: toolchain build-full
+
+upgrade: 
+	WASM_TARGET_DIRECTORY="$(shell pwd)" cargo build
