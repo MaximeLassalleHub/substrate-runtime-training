@@ -2,8 +2,8 @@ License: Unlicense
 ## DESIGN KITTY PALLET
 # Calls
 * fn create
-* fn breed(kitty_id_1: u32,kitty_id_2: u32)
-* fn transfer(to:AccountId,kitty_id:u32)
+* fn breed(kitty_id_1: KittyIndex,kitty_id_2: KittyIndex)
+* fn transfer(to:AccountId,kitty_id:KittyIndex)
 * sell
 # Types
 * enum Gender {
@@ -19,28 +19,28 @@ License: Unlicense
 InvalidKittyId,
 SameGender,
 # Storages
-* Kitties: double_map u32,AccountId => Option<Kitty>
-* Nextu32: u32
+* Kitties: double_map KittyIndex,AccountId => Option<Kitty>
+* NextKittyIndex: KittyIndex
 # Events
 * KittyCreated
-    * kitty_id: u32
+    * kitty_id: KittyIndex
     * kitty: Kitty
     * owner: AccountId
 * KittyBred
     * owner: AccountId
-    * kitty_id: u32
+    * kitty_id: KittyIndex
     * kitty: Kitty
-    * kitty_parent_1_: u32
-    * kitty_parent_2_: u32
-* KittyTransfered
+    * kitty_parent_1_: KittyIndex
+    * kitty_parent_2_: KittyIndex
+* KittyTransferred
     * from: AccountId
     * to: AccountId
-    * kitty_id: u32
+    * kitty_id: KittyIndex
     * kitty: Kitty
 * KittyBought
     * seller: AccountId
     * buyer: AccountId
-    * kitty_id: u32
+    * kitty_id: KittyIndex
     * kitty: Kitty
 # functiu 
 

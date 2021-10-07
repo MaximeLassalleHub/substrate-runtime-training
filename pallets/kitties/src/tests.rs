@@ -62,6 +62,7 @@ impl Randomness<H256, u64> for MockRandom {
 impl Config for Test {
     type Event = Event;
     type Randomness = MockRandom;
+    type KittyIndex = u32;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let mut t : sp_io::TestExternalities = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
