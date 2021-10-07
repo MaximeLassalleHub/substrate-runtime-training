@@ -17,12 +17,11 @@ frame_support::construct_runtime!(
         UncheckedExtrinsic = UncheckedExtrinsic,
         {
             System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-            RandomnessCollectiveFlip: pallet_randomness_collective_flip::{Pallet,Storage},
             KittiesModule: kitties::{Pallet, Call,Storage, Event<T>},
         }
 );
 parameter_types! {
-    pub const BlockHashCount: u64= 250;
+    pub const BlockHashCount: u64= 250; 
     pub const SS58Prefix: u8 = 42;
 }
 impl frame_system::Config for Test {
@@ -50,9 +49,19 @@ impl frame_system::Config for Test {
     type SS58Prefix = SS58Prefix;
     type OnSetCode = ();
 }
-impl pallet_randomness_collective_flip::Config for Test {}
+//impl pallet_randomness_collective_flip::Config for Test {}
+
+parameter_types! {
+    pub static MockRandom: H256 = Default::default();
+}
+impl Randomness<H256, u64> for MockRandom {
+    fn random (_subject: &[u8]) -> (H256, u64) {
+        (MockRandom::get(),0)
+    }
+}
 impl Config for Test {
     type Event = Event;
+    type Randomness = MockRandom;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let mut t : sp_io::TestExternalities = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap().into();
@@ -83,7 +92,7 @@ fn can_breed(){
         // create first parent on extrinsic index 0
         assert_ok!(KittiesModule::create(Origin::signed(100)));
         // set extrinsic index 0 so next Kitty is not same gender than before
-        System::set_extrinsic_index(1);
+        MockRandom::set(H256::from([2; 32]));
         // crete 2nd parent with opposite gender
         assert_ok!(KittiesModule::create(Origin::signed(100)));
         
@@ -97,7 +106,7 @@ fn can_breed(){
         assert_ok!(KittiesModule::breed(Origin::signed(100),0,1));
 
         // create u8 , 16 Kitty manually upon on random_value specs
-        let kitty = Kitty([59, 254, 219, 122, 245, 239, 191, 125, 255, 239, 247, 247, 251, 239, 247, 254]);
+        let kitty = Kitty([187, 250, 235, 118, 211, 247, 237, 253, 187, 239, 191, 185, 239, 171, 211, 122]);
         assert_eq!(KittiesModule::kitties(100,2), Some(kitty.clone()));
         assert_eq!(KittiesModule::next_kitty_id(),3);
         System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyBred(100u64,2u32  ,kitty,0u32,1u32)));
