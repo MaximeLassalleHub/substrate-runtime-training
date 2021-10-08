@@ -92,7 +92,7 @@ fn can_breed(){
     new_test_ext().execute_with(|| {
         // create first parent on extrinsic index 0
         assert_ok!(KittiesModule::create(Origin::signed(100)));
-        // set extrinsic index 0 so next Kitty is not same gender than before
+        // change mock random so next kitty has opposite gender
         MockRandom::set(H256::from([2; 32]));
         // crete 2nd parent with opposite gender
         assert_ok!(KittiesModule::create(Origin::signed(100)));
@@ -111,5 +111,23 @@ fn can_breed(){
         assert_eq!(KittiesModule::kitties(100,2), Some(kitty.clone()));
         assert_eq!(KittiesModule::next_kitty_id(),3);
         System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyBred(100u64,2u32  ,kitty,0u32,1u32)));
+    }); 
+}
+#[test]
+fn can_transfer(){
+    new_test_ext().execute_with(|| {
+        // create first kitty on Account 100
+        assert_ok!(KittiesModule::create(Origin::signed(100)));
+       // create 2nd kitty on Account 101
+        assert_ok!(KittiesModule::create(Origin::signed(101)));
+        
+        // assert Invalid Kitty Id if not owned kitty
+        assert_noop!(KittiesModule::transfer(Origin::signed(100),100,1),Error::<Test>::InvalidKittyId);
+
+        assert_ok!(KittiesModule::transfer(Origin::signed(100), 101,0));
+        let kitty1_transferred = KittiesModule::kitties(101,0).ok_or(Error::<Test>::InvalidKittyId);
+        System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyTransferred(100u64,101u64,0,kitty1_transferred.unwrap() as Kitty)));
+
+        assert_eq!(KittiesModule::next_kitty_id(),2);
     }); 
 }
