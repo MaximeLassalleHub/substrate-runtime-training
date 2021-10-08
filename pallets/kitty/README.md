@@ -4,7 +4,7 @@ License: Unlicense
 * fn create
 * fn breed(kitty_id_1: KittyIndex,kitty_id_2: KittyIndex)
 * fn transfer(to:AccountId,kitty_id:KittyIndex)
-* sell
+* fn buy(kitty_id: KittyIndex)
 # Types
 * enum Gender {
     Male,
@@ -14,10 +14,10 @@ License: Unlicense
     * dna: u128
     * currency_id: CurrencyId
     * price: Balance
-    * gender: Gender
 # Errors
 InvalidKittyId,
 SameGender,
+InsufficientBalance
 # Storages
 * Kitties: double_map KittyIndex,AccountId => Option<Kitty>
 * NextKittyIndex: KittyIndex
@@ -38,9 +38,9 @@ SameGender,
     * kitty_id: KittyIndex
     * kitty: Kitty
 * KittyBought
-    * seller: AccountId
-    * buyer: AccountId
     * kitty_id: KittyIndex
     * kitty: Kitty
-# functiu 
+    * seller: AccountId
+    * buyer: AccountId
+
 
