@@ -4,22 +4,21 @@ License: Unlicense
 * fn create
 * fn breed(kitty_id_1: KittyIndex,kitty_id_2: KittyIndex)
 * fn transfer(to:AccountId,kitty_id:KittyIndex)
-* fn buy(kitty_id: KittyIndex)
+* fn set_price(origin, kitty_id: KittyIndex, price: Option<Balance>)
+* fn buy(origin, owner: AccountId, kitty_id: KittyIndex, max_price: Balance)
 # Types
 * enum Gender {
     Male,
     Female,
 }
-* struct Kitty
-    * dna: u128
-    * currency_id: CurrencyId
-    * price: Balance
+* struct Kitty<u128>
 # Errors
 InvalidKittyId,
 SameGender,
 InsufficientBalance
 # Storages
 * Kitties: double_map KittyIndex,AccountId => Option<Kitty>
+* Kitties: map KittyIndex => Option<Balance>
 * NextKittyIndex: KittyIndex
 # Events
 * KittyCreated
@@ -37,10 +36,16 @@ InsufficientBalance
     * to: AccountId
     * kitty_id: KittyIndex
     * kitty: Kitty
-* KittyBought
+* KittySold
     * kitty_id: KittyIndex
     * kitty: Kitty
-    * seller: AccountId
-    * buyer: AccountId
+    * old_onwer: AccountId
+    * old_owner: AccountId
+    * max_price: Balance
+* KittyPriceUpdated
+    * owner: AccountId
+    * kitty_id: KittyIndex
+    * kitty: Kitty
+    * price: Option<Balance>
 
 
