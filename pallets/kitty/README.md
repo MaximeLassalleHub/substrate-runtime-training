@@ -15,7 +15,9 @@ License: Unlicense
 # Errors
 InvalidKittyId,
 SameGender,
-InsufficientBalance
+NotForSale,
+PriceTooLow,
+BuyFromSelf
 # Storages
 * Kitties: double_map KittyIndex,AccountId => Option<Kitty>
 * Kitties: map KittyIndex => Option<Balance>
@@ -36,16 +38,16 @@ InsufficientBalance
     * to: AccountId
     * kitty_id: KittyIndex
     * kitty: Kitty
-* KittySold
-    * kitty_id: KittyIndex
-    * kitty: Kitty
-    * old_onwer: AccountId
-    * old_owner: AccountId
-    * max_price: Balance
 * KittyPriceUpdated
     * owner: AccountId
     * kitty_id: KittyIndex
     * kitty: Kitty
     * price: Option<Balance>
+* KittySold
+    * old_onwer: AccountId
+    * new_owner: AccountId
+    * kitty_id: KittyIndex
+    * kitty: Kitty
+    * max_price: Balance
 
 
