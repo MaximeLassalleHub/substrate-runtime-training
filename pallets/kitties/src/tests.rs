@@ -96,12 +96,18 @@ impl Config for Test {
     type Currency = Balances;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
-    let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()
-        .build_storage::<Test>()
-        .unwrap()
-        .into();
-    t.execute_with(|| System::set_block_number(1));
-    t
+	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+
+	pallet_balances::GenesisConfig::<Test>{
+		balances: vec![(200, 500)],
+	}.assimilate_storage(&mut t).unwrap();
+
+	<crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(&crate::GenesisConfig::default(), &mut t).unwrap();
+
+	let mut t: sp_io::TestExternalities = t.into();
+
+	t.execute_with(|| System::set_block_number(1) );
+	t
 }
 #[test]
 fn can_create() {
@@ -171,12 +177,12 @@ fn can_transfer() {
         // assert Invalid Kitty Id if not owned kitty
         assert_noop!(
             KittiesModule::transfer(Origin::signed(100), 100, 1),
-            Error::<Test>::InvalidKittyId
+            orml_nft::Error::<Test>::NoPermission
         );
 
         assert_ok!(KittiesModule::transfer(Origin::signed(100), 101, 0));
         let kitty1_transferred =
-            KittiesModule::kitties(&101, 0).ok_or(Error::<Test>::InvalidKittyId);
+            KittiesModule::kitties(&101, 0).ok_or(orml_nft::Error::<Test>::NoPermission);
         System::assert_last_event(Event::KittiesModule(
             crate::Event::<Test>::KittyTransferred(
                 100u64,
