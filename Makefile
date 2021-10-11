@@ -25,3 +25,18 @@ init: toolchain build-full
 
 upgrade: 
 	WASM_TARGET_DIRECTORY="$(shell pwd)" cargo build
+
+benchmark:
+	cargo run --manifest-path node/Cargo.toml --features runtime-benchmarks -- benchmark --extrinsic '*' --pallet '*' --execution=wasm --wasm-execution=compiled
+
+benchmark-output:
+	cargo run --manifest-path node/Cargo.toml --release --features runtime-benchmarks -- benchmark --extrinsic '*' --pallet pallet_kitties --output runtime/src/weights/pallet_kitties.rs --execution=wasm --wasm-execution=compiled
+
+benchmark-traits:
+	cargo run --manifest-path node/Cargo.toml --release --features runtime-benchmarks -- benchmark --extrinsic '*' --pallet pallet_kitties --output pallets/kitties/src/weights.rs --template=frame-weight-template.hbs --execution=wasm --wasm-execution=compiled
+
+test-benchmark:
+	cargo test --manifest-path pallets/kitties/Cargo.toml --features runtime-benchmarks -- --nocapture
+
+generate-kitties-benchmark:
+	target/release/node-template benchmark --extrinsic * --pallet pallet_kitties --output pallets/kitties/src/weights.rs --template=frame-weight-template.hbs --execution=wasm --wasm-execution=compiled
