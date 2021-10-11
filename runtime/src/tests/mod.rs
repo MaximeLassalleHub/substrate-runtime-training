@@ -36,14 +36,10 @@ fn test_codec() {
         b: 2u32,
         c: TestEnum::C,
     }, b"\0\x02\0\0\0\x0a");
-    assert_encode(TestEnum2::A{
-       TestEnum::A,2u32,C:TestEnum::C
-    }, b"0\0\x02\0\0\0\01\x0a");
-    assert_encode(TestEnum2::B{
-        TestEnum::A,2u32,C:TestEnum::C
-     }, b"x01\0\x02\0\0\0\01\x0a");
-    assert_encode(Vec::new(), b"x0");
-    assert_encode(vec![1u32,2u32]), b"\x08\x01\0\0\0\x02\0\0\0");     
+    assert_encode(TestEnum2::A(TestEnum::A,2u32,TestEnum::C), b"0\0\x02\0\0\0\01\x0a");
+    assert_encode(TestEnum2::B(TestEnum::A,2u32,TestEnum::C), b"x01\0\x02\0\0\0\01\x0a");
+    assert_encode(Vec::<u8>::new(), b"x0");
+    assert_encode(vec![1u32,2u32], b"\x08\x01\0\0\0\x02\0\0\0");     
 }
 // compact encoding:
 // 0b00 00 00 00 / 00 00 00 00 / 00 00 00 00 / 00 00 00 00
@@ -53,7 +49,7 @@ fn test_codec() {
 //   nn nn nn 11 [ / zz zz zz zz ]{4 + n}									(2**30 .. 2**536)	(u32, u64, u128, U256, U512, U520) straight LE-encoded
 // Note: we use *LOW BITS* of the LSB in LE encoding to encode the 2 bit key.
 #[test]
-fn test_compact {
+fn test_compact() {
     assert_encode(Compact(2u8),  &[0b00000100]);
     assert_encode(Compact(1u64), &[0b000000100]);
     assert_encode(Compact(1u128),&[0b000000100]);
@@ -79,4 +75,4 @@ fn test_compact {
     // 16384
    assert_encode(Compact(1u64 << 14), &[0b00000010,0b00000000,0b00000001,0b00000000]);
    assert_encode(Compact(1u128 << 14), &[0b00000010,0b00000000,0b00000001,0b00000000]);
-}}
+}
