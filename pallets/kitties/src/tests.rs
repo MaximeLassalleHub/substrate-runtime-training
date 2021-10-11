@@ -194,5 +194,23 @@ fn can_transfer() {
 
     });
 }
+fn handle_self_transfer() {
+	new_test_ext().execute_with(|| {
+		assert_ok!(KittiesModule::create(Origin::signed(100)));
+
+		System::reset_events();
+
+		assert_noop!(KittiesModule::transfer(Origin::signed(100), 100, 1), orml_nft::Error::<Test>::TokenNotFound);
+
+		assert_ok!(KittiesModule::transfer(Origin::signed(100), 100, 0));
+
+		assert_eq!(Nft::tokens(KittiesModule::class_id(), 0).unwrap().owner, 100);
+
+		// no transfer event because no actual transfer is executed
+		assert_eq!(System::events().len(), 0);
+	});
+}
+
+
 
 // exercise exchange tests
