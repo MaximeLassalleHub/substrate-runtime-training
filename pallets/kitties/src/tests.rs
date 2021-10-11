@@ -101,7 +101,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
         .unwrap();
 
     pallet_balances::GenesisConfig::<Test> {
-        balances: vec![(200, 500)],
+        balances: vec![(101, 5000)],
     }
     .assimilate_storage(&mut t)
     .unwrap();
@@ -251,8 +251,8 @@ fn can_set_price() {
             ),
         ));
         // assert Price 999 stored on kitty 0
-        let stored_price =  KittiesModule::prices(0).unwrap();
-        assert_eq!(stored_price,999u64);
+        let stored_price = KittiesModule::prices(0).unwrap();
+        assert_eq!(stored_price, 999u64);
     });
 }
 
@@ -261,7 +261,37 @@ fn can_buy() {
     new_test_ext().execute_with(|| {
         // create kitty 0 on Account 100
         assert_ok!(KittiesModule::create(Origin::signed(100)));
+        assert_ok!(KittiesModule::set_price(
+            Origin::signed(100),
+            0,
+            Some(999u64)
+        ));
+        // assert Price 999 stored on kitty 0
+        let stored_price = KittiesModule::prices(0).unwrap();
+        // assert Price 999 stored on kitty 0
+        assert_eq!(stored_price, 999u64);
         // create kitty 1 on Account 101
         assert_ok!(KittiesModule::create(Origin::signed(101)));
+        assert_noop!(
+            KittiesModule::buy(Origin::signed(100), 101, 1, 999u64),
+            Error::<Test>::NotForSale
+        );
+        assert_noop!(
+            KittiesModule::buy(Origin::signed(101), 100, 0, 998u64),
+            Error::<Test>::PriceTooLow
+        );
+        assert_ok!(KittiesModule::buy(Origin::signed(101), 100, 0, 999u64));
+        let sold_kitty =
+            KittiesModule::kitties(&101, 0).ok_or(orml_nft::Error::<Test>::NoPermission);
+        System::assert_last_event(Event::KittiesModule(
+            crate::Event::<Test>::KittySold(
+                100u64,
+                101u64,
+                0,
+                sold_kitty.unwrap(),
+                999u64,
+            ),
+        ));
+        assert_eq!(KittiesModule::prices(0), None);
     });
 }

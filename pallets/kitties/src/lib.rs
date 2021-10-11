@@ -23,7 +23,7 @@ pub enum KittyGender {
 	Female,
 }
 #[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
-#[derive(Encode, Decode, Clone, RuntimeDebug, PartialEq, Eq)]
+#[derive(Encode, Decode, Clone,Copy, RuntimeDebug, PartialEq, Eq)]
 pub struct Kitty(pub [u8; 16]);
 impl Kitty {
 	pub fn gender(&self) -> KittyGender {
@@ -229,7 +229,7 @@ pub mod pallet {
 			Prices::<T>::try_mutate_exists(kitty_id, |price| -> DispatchResult {
 					// remove old owner kitty price - if absent not for sale
 					let price = price.take().ok_or(Error::<T>::NotForSale)?;
-					ensure!(price >= max_price, Error::<T>::PriceTooLow);
+					ensure!(max_price >= price , Error::<T>::PriceTooLow);
 					orml_nft::Pallet::<T>::transfer(&owner,&sender,(Self::class_id(),kitty_id))?;
 					T::Currency::transfer(&sender, &owner, price,ExistenceRequirement::KeepAlive)?;
 					let bought_kitty =
