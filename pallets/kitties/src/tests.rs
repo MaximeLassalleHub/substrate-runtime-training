@@ -77,17 +77,17 @@ impl Randomness<H256, u64> for MockRandom {
     }
 }
 parameter_types! {
-	pub const MaxClassMetadata: u32 = 0;
-	pub const MaxTokenMetadata: u32 = 0;
+    pub const MaxClassMetadata: u32 = 0;
+    pub const MaxTokenMetadata: u32 = 0;
 }
 
 impl orml_nft::Config for Test {
-	type ClassId = u32;
-	type TokenId = u32;
-	type ClassData = ();
-	type TokenData = Kitty;
-	type MaxClassMetadata = MaxClassMetadata;
-	type MaxTokenMetadata = MaxTokenMetadata;
+    type ClassId = u32;
+    type TokenId = u32;
+    type ClassData = ();
+    type TokenData = Kitty;
+    type MaxClassMetadata = MaxClassMetadata;
+    type MaxTokenMetadata = MaxTokenMetadata;
 }
 
 impl Config for Test {
@@ -96,18 +96,26 @@ impl Config for Test {
     type Currency = Balances;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	let mut t = frame_system::GenesisConfig::default().build_storage::<Test>().unwrap();
+    let mut t = frame_system::GenesisConfig::default()
+        .build_storage::<Test>()
+        .unwrap();
 
-	pallet_balances::GenesisConfig::<Test>{
-		balances: vec![(200, 500)],
-	}.assimilate_storage(&mut t).unwrap();
+    pallet_balances::GenesisConfig::<Test> {
+        balances: vec![(200, 500)],
+    }
+    .assimilate_storage(&mut t)
+    .unwrap();
 
-	<crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(&crate::GenesisConfig::default(), &mut t).unwrap();
+    <crate::GenesisConfig as GenesisBuild<Test>>::assimilate_storage(
+        &crate::GenesisConfig::default(),
+        &mut t,
+    )
+    .unwrap();
 
-	let mut t: sp_io::TestExternalities = t.into();
+    let mut t: sp_io::TestExternalities = t.into();
 
-	t.execute_with(|| System::set_block_number(1) );
-	t
+    t.execute_with(|| System::set_block_number(1));
+    t
 }
 #[test]
 fn can_create() {
@@ -191,26 +199,69 @@ fn can_transfer() {
                 kitty1_transferred.unwrap() as Kitty,
             ),
         ));
-
     });
 }
+#[test]
 fn handle_self_transfer() {
-	new_test_ext().execute_with(|| {
-		assert_ok!(KittiesModule::create(Origin::signed(100)));
+    new_test_ext().execute_with(|| {
+        assert_ok!(KittiesModule::create(Origin::signed(100)));
 
-		System::reset_events();
+        System::reset_events();
 
-		assert_noop!(KittiesModule::transfer(Origin::signed(100), 100, 1), orml_nft::Error::<Test>::TokenNotFound);
+        assert_noop!(
+            KittiesModule::transfer(Origin::signed(100), 100, 1),
+            orml_nft::Error::<Test>::TokenNotFound
+        );
 
-		assert_ok!(KittiesModule::transfer(Origin::signed(100), 100, 0));
+        assert_ok!(KittiesModule::transfer(Origin::signed(100), 100, 0));
 
-		assert_eq!(Nft::tokens(KittiesModule::class_id(), 0).unwrap().owner, 100);
+        assert_eq!(
+            Nft::tokens(KittiesModule::class_id(), 0).unwrap().owner,
+            100
+        );
 
-		// no transfer event because no actual transfer is executed
-		assert_eq!(System::events().len(), 0);
-	});
+        // no transfer event because no actual transfer is executed
+        assert_eq!(System::events().len(), 0);
+    });
+}
+#[test]
+fn can_set_price() {
+    new_test_ext().execute_with(|| {
+        // create kitty 0 on Account 100
+        assert_ok!(KittiesModule::create(Origin::signed(100)));
+        // create kitty 1 on Account 101
+        assert_ok!(KittiesModule::create(Origin::signed(101)));
+        assert_noop!(
+            KittiesModule::set_price(Origin::signed(100), 1, Some(999u64)),
+            Error::<Test>::NotOwner
+        );
+        assert_ok!(KittiesModule::set_price(
+            Origin::signed(100),
+            0,
+            Some(999u64)
+        ));
+        let updated_kitty =
+            KittiesModule::kitties(&100, 0).ok_or(orml_nft::Error::<Test>::NoPermission);
+        System::assert_last_event(Event::KittiesModule(
+            crate::Event::<Test>::KittyPriceUpdated(
+                100u64,
+                0,
+                updated_kitty.unwrap() as Kitty,
+                Some(999u64),
+            ),
+        ));
+        // assert Price 999 stored on kitty 0
+        let stored_price =  KittiesModule::prices(0).unwrap();
+        assert_eq!(stored_price,999u64);
+    });
 }
 
-
-
-// exercise exchange tests
+#[test]
+fn can_buy() {
+    new_test_ext().execute_with(|| {
+        // create kitty 0 on Account 100
+        assert_ok!(KittiesModule::create(Origin::signed(100)));
+        // create kitty 1 on Account 101
+        assert_ok!(KittiesModule::create(Origin::signed(101)));
+    });
+}
