@@ -79,6 +79,7 @@ impl Config for Test {
     type Event = Event;
     type Randomness = MockRandom;
     type KittyIndex = u32;
+    type Currency = Balances;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
     let mut t: sp_io::TestExternalities = frame_system::GenesisConfig::default()

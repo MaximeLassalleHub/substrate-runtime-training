@@ -36,11 +36,13 @@ pub mod pallet {
 	use super::*;
 
 	#[pallet::config]
-	pub trait Config: frame_system::Config + pallet_balances::Config {
+	pub trait Config: frame_system::Config {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
 		type KittyIndex: Parameter + AtLeast32BitUnsigned + Bounded + Default + Copy;
+		type Currency: Currency<Self::AccountId>;
 	}
+	pub type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 	// Stores all the kitties. Key is (user, kitty_id).
 	#[pallet::storage]
 	#[pallet::getter(fn kitties)]
@@ -58,7 +60,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn prices)]
 	pub type Prices<T: Config> =
-		StorageMap<_, Blake2_128Concat, T::KittyIndex, T::Balance, OptionQuery>;
+		StorageMap<_, Blake2_128Concat, T::KittyIndex, BalanceOf<T>, OptionQuery>;
 
 	// Stores the next kitty Id.
 	#[pallet::storage]
@@ -67,7 +69,7 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	#[pallet::metadata(T::AccountId = "AccountId", T::KittyIndex = "KittyIndex", Option<T::Balance> = "Option<Balance>", T::Balance = "Balance")]
+	#[pallet::metadata(T::AccountId = "AccountId", T::KittyIndex = "KittyIndex", Option<BalanceOf<T>> = "Option<Balance>", BalanceOf<T> = "Balance")]
 	pub enum Event<T: Config> {
 		// A kitty is created. \[owner, kitty_id, kitty\]
 		KittyCreated(T::AccountId, T::KittyIndex, Kitty),
@@ -82,9 +84,9 @@ pub mod pallet {
 		// A kitty is transferred. \[from, to, kitty_id, kitty\]
 		KittyTransferred(T::AccountId, T::AccountId, T::KittyIndex, Kitty),
 		// A kitty has price updated. \[from, kitty_id, kitty, max_price\]
-		KittyPriceUpdated(T::AccountId, T::KittyIndex, Kitty, Option<T::Balance>),
+		KittyPriceUpdated(T::AccountId, T::KittyIndex, Kitty, Option<BalanceOf<T>>),
 		// A kitty is sold. \[from, to, kitty_id, kitty, max_price\]
-		KittySold(T::AccountId, T::AccountId, T::KittyIndex, Kitty, T::Balance),
+		KittySold(T::AccountId, T::AccountId, T::KittyIndex, Kitty, BalanceOf<T>),
 	}
 
 	#[pallet::error]
@@ -185,7 +187,7 @@ pub mod pallet {
 		pub fn set_price(
 			origin: OriginFor<T>,
 			kitty_id: T::KittyIndex,
-			new_price: Option<T::Balance>,
+			new_price: Option<BalanceOf<T>>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			ensure!(
@@ -210,7 +212,7 @@ pub mod pallet {
 			origin: OriginFor<T>,
 			owner: T::AccountId,
 			kitty_id: T::KittyIndex,
-			max_price: T::Balance,
+			max_price: BalanceOf<T>,
 		) -> DispatchResult {
 			let sender = ensure_signed(origin)?;
 			ensure!(sender != owner, Error::<T>::BuyFromSelf);
@@ -221,7 +223,7 @@ pub mod pallet {
 					// remove old owner kitty price - if absent not for sale
 					let price = price.take().ok_or(Error::<T>::NotForSale)?;
 					ensure!(price >= max_price, Error::<T>::PriceTooLow);
-					<pallet_balances::Pallet<T> as Currency<T::AccountId>>::transfer(
+					T::Currency::transfer(
 						&sender,
 						&owner,
 						price,
