@@ -19,7 +19,8 @@ frame_support::construct_runtime!(
         {
             System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
             Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-            KittiesModule: kitties::{Pallet, Call,Storage, Event<T>}
+            KittiesModule: kitties::{Pallet, Call,Storage, Event<T>, Config},
+            Nft: orml_nft::{Pallet, Storage, Config<T>},
         }
 );
 parameter_types! {
@@ -75,10 +76,23 @@ impl Randomness<H256, u64> for MockRandom {
         (MockRandom::get(), 0)
     }
 }
+parameter_types! {
+	pub const MaxClassMetadata: u32 = 0;
+	pub const MaxTokenMetadata: u32 = 0;
+}
+
+impl orml_nft::Config for Test {
+	type ClassId = u32;
+	type TokenId = u32;
+	type ClassData = ();
+	type TokenData = Kitty;
+	type MaxClassMetadata = MaxClassMetadata;
+	type MaxTokenMetadata = MaxTokenMetadata;
+}
+
 impl Config for Test {
     type Event = Event;
     type Randomness = MockRandom;
-    type KittyIndex = u32;
     type Currency = Balances;
 }
 pub fn new_test_ext() -> sp_io::TestExternalities {
@@ -98,8 +112,7 @@ fn can_create() {
         let kitty = Kitty([
             59, 250, 138, 82, 209, 39, 141, 109, 163, 238, 183, 145, 235, 168, 18, 122,
         ]);
-        assert_eq!(KittiesModule::kitties(100, 0), Some(kitty.clone()));
-        assert_eq!(KittiesModule::next_kitty_id(), 1);
+        assert_eq!(KittiesModule::kitties(&100, 0), Some(kitty.clone()));
         System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyCreated(
             100, 0, kitty,
         )));
@@ -142,8 +155,7 @@ fn can_breed() {
         let kitty = Kitty([
             187, 250, 235, 118, 211, 247, 237, 253, 187, 239, 191, 185, 239, 171, 211, 122,
         ]);
-        assert_eq!(KittiesModule::kitties(100, 2), Some(kitty.clone()));
-        assert_eq!(KittiesModule::next_kitty_id(), 3);
+        assert_eq!(KittiesModule::kitties(&100, 2), Some(kitty.clone()));
         System::assert_last_event(Event::KittiesModule(crate::Event::<Test>::KittyBred(
             100u64, 2u32, kitty, 0u32, 1u32,
         )));
@@ -164,7 +176,7 @@ fn can_transfer() {
 
         assert_ok!(KittiesModule::transfer(Origin::signed(100), 101, 0));
         let kitty1_transferred =
-            KittiesModule::kitties(101, 0).ok_or(Error::<Test>::InvalidKittyId);
+            KittiesModule::kitties(&101, 0).ok_or(Error::<Test>::InvalidKittyId);
         System::assert_last_event(Event::KittiesModule(
             crate::Event::<Test>::KittyTransferred(
                 100u64,
@@ -174,7 +186,6 @@ fn can_transfer() {
             ),
         ));
 
-        assert_eq!(KittiesModule::next_kitty_id(), 2);
     });
 }
 
